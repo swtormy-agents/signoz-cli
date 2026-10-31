@@ -13,7 +13,7 @@ Download a release archive from [GitHub Releases](https://github.com/swtormy-age
 Or install from source with Go **1.26.10** (matches `go.mod`):
 
 ```bash
-go install github.com/swtormy-agents/signoz-cli/cmd/signoz@feat/v0.1
+go install github.com/swtormy-agents/signoz-cli/cmd/signoz@v0.1.0
 ```
 
 ## Quick start
