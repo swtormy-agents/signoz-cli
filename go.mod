@@ -1,6 +1,6 @@
 module github.com/swtormy-agents/signoz-cli
 
-go 1.23.12
+go 1.25.5
 
 require (
 	github.com/itchyny/gojq v0.12.17
