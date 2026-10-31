@@ -10,7 +10,7 @@ MIT licensed. Third-party notices in [NOTICE](NOTICE); release archives also shi
 
 Download a release archive from [GitHub Releases](https://github.com/swtormy-agents/signoz-cli/releases) (Linux and Windows, amd64/arm64). Extract the binary and add it to your `PATH`.
 
-Or install from source with Go 1.23+:
+Or install from source with Go **1.23+** (see `go.mod` for the CI toolchain pin):
 
 ```bash
 go install github.com/swtormy-agents/signoz-cli/cmd/signoz@feat/v0.1
