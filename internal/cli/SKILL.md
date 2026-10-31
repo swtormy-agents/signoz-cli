@@ -40,4 +40,4 @@ Use `--output table` for quick human scans; default is JSON for agents.
 
 Install this skill: `signoz skill install --agent cursor`
 
-Also see repo `skills/signoz/SKILL.md` for a copy checked into the tree.
+Repo copies (keep in sync): `internal/cli/SKILL.md` and `skills/signoz/SKILL.md`.

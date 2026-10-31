@@ -4,13 +4,13 @@
 
 `signoz` is a small Go CLI for the [SigNoz](https://signoz.io/) REST API. It targets humans and AI agents that want structured JSON (or tables) instead of wiring an MCP server — see [SigNoz/signoz#11828](https://github.com/SigNoz/signoz/issues/11828).
 
-MIT licensed. Third-party notices in [NOTICE](NOTICE); release archives also ship `THIRD_PARTY_NOTICES` and `third-party-licenses/`.
+MIT licensed. Third-party notices in [NOTICE](NOTICE); release archives also ship `THIRD_PARTY_NOTICES` and `third_party_licenses/`.
 
 ## Install
 
 Download a release archive from [GitHub Releases](https://github.com/swtormy-agents/signoz-cli/releases) (Linux and Windows, amd64/arm64). Extract the binary and add it to your `PATH`.
 
-Or install from source with Go **1.23+** (see `go.mod` for the CI toolchain pin):
+Or install from source with Go **1.26.10** (matches `go.mod`):
 
 ```bash
 go install github.com/swtormy-agents/signoz-cli/cmd/signoz@feat/v0.1

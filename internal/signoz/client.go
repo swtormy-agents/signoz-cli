@@ -48,6 +48,7 @@ func (c *Client) http() *http.Client {
 }
 
 func (c *Client) Redact(s string) string {
+	s = StripURLUserinfo(s)
 	if c.APIKey == "" || len(c.APIKey) < MinAPIKeyLength {
 		return s
 	}
@@ -138,7 +139,11 @@ func (c *Client) JSON(ctx context.Context, method, path string, v any) (json.Raw
 }
 
 func DryRun(method, baseURL, path string, query url.Values, body any) map[string]any {
-	u := strings.TrimRight(baseURL, "/") + path
+	safeBase, _ := ValidateBaseURL(baseURL)
+	if safeBase == "" {
+		safeBase = StripURLUserinfo(strings.TrimSpace(baseURL))
+	}
+	u := strings.TrimRight(safeBase, "/") + path
 	if len(query) > 0 {
 		u += "?" + query.Encode()
 	}

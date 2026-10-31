@@ -64,7 +64,7 @@ for t in $targets; do
     -o "${stage}/${bin}" ./cmd/signoz
   cp LICENSE NOTICE "${license_stage}/THIRD_PARTY_NOTICES" "$stage/"
   if [ -d "${license_stage}/licenses" ]; then
-    cp -r "${license_stage}/licenses" "${stage}/third-party-licenses"
+    cp -r "${license_stage}/licenses" "${stage}/third_party_licenses"
   fi
   if [ -d "${license_stage}/apache-notices" ] && [ -n "$(ls -A "${license_stage}/apache-notices" 2>/dev/null || true)" ]; then
     cp -r "${license_stage}/apache-notices" "${stage}/apache-notices"

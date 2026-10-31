@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -205,18 +206,21 @@ func (a *app) apiCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "api <METHOD> <path>",
 		Short: "Call a SigNoz API path (escape hatch)",
-		Long:  "Paths must start with /api. Mutating methods need --write and interactive confirmation.",
+		Long:  "Paths must start with /api/. Mutating methods need --write and interactive confirmation.",
 		Example: `  signoz api GET /api/v3/rules?limit=5
-  signoz api POST /api/v5/query_range --body '{"schemaVersion":"v1"}'`,
+  signoz logs query --filter "severity_text = 'ERROR'"`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			method := strings.ToUpper(args[0])
-			path := args[1]
-			if err := checkAPIAllowed(method, path); err != nil {
+			pathOnly, q, err := normalizeAPIPath(args[1])
+			if err != nil {
+				return err
+			}
+			if err := checkAPIAllowed(method, pathOnly); err != nil {
 				return err
 			}
 			if apiNeedsWrite(method) {
-				if err := a.requireHumanWrite(cmd, "api "+method+" "+path); err != nil {
+				if err := a.requireHumanWrite(cmd, "api "+method+" "+pathOnly); err != nil {
 					return err
 				}
 			}
@@ -225,16 +229,12 @@ func (a *app) apiCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if path == "" || path[0] != '/' {
-				path = "/" + path
-			}
-			u, q := splitPathQuery(path)
 			if a.dryRun {
 				var body any
 				if bodyJSON != "" {
 					_ = json.Unmarshal([]byte(bodyJSON), &body)
 				}
-				return a.emitValue(signoz.DryRun(method, c.BaseURL, u, q, body))
+				return a.emitValue(signoz.DryRun(method, c.BaseURL, pathOnly, q, body))
 			}
 			var raw json.RawMessage
 			if bodyJSON != "" {
@@ -242,9 +242,9 @@ func (a *app) apiCmd() *cobra.Command {
 				if err := json.Unmarshal([]byte(bodyJSON), &body); err != nil {
 					return usageErr("--body: %v", err)
 				}
-				raw, _, err = c.JSON(ctx, method, u, body)
+				raw, _, err = c.JSON(ctx, method, pathOnly, body)
 			} else {
-				raw, _, err = c.Do(ctx, method, u, q, nil)
+				raw, _, err = c.Do(ctx, method, pathOnly, q, nil)
 			}
 			if err != nil {
 				return a.wrapAPI(err)
@@ -257,24 +257,39 @@ func (a *app) apiCmd() *cobra.Command {
 	return cmd
 }
 
-func splitPathQuery(path string) (string, url.Values) {
-	if i := strings.Index(path, "?"); i < 0 {
-		return path, nil
+func normalizeAPIPath(raw string) (string, url.Values, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", nil, usageErr("path is required")
 	}
-	u, err := url.Parse(path)
-	if err != nil {
-		return path, nil
+	if raw[0] != '/' {
+		raw = "/" + raw
 	}
-	return u.Path, u.Query()
+	pathPart := raw
+	var q url.Values
+	if u, err := url.Parse(raw); err == nil && u.Path != "" {
+		pathPart = u.Path
+		q = u.Query()
+	} else if i := strings.Index(raw, "?"); i >= 0 {
+		pathPart = raw[:i]
+		if u, err := url.Parse("http://dummy" + raw); err == nil {
+			q = u.Query()
+		}
+	}
+	if strings.Contains(pathPart, "..") {
+		return "", nil, usageErr("path must not contain ..")
+	}
+	cleaned := path.Clean(pathPart)
+	if !strings.HasPrefix(cleaned, "/api/") {
+		return "", nil, usageErr("path must start with /api/")
+	}
+	return cleaned, q, nil
 }
 
-func checkAPIAllowed(method, path string) error {
-	p := strings.ToLower(path)
-	if !strings.HasPrefix(p, "/api") {
-		return usageErr("path must start with /api")
-	}
+func checkAPIAllowed(method, pathOnly string) error {
+	p := strings.ToLower(pathOnly)
 	if method == http.MethodDelete && strings.Contains(p, "/rules/") {
-		return blockedErr(fmt.Errorf("api %s %s is blocked in v0.1; confirm manually in the UI", method, path))
+		return blockedErr(fmt.Errorf("api %s %s is blocked in v0.1; confirm manually in the UI", method, pathOnly))
 	}
 	return nil
 }

@@ -135,7 +135,7 @@ func (a *app) reportError(err error) int {
 }
 
 func (a *app) redact(s string) string {
-	return (&signoz.Client{APIKey: a.apiKey}).Redact(s)
+	return signoz.StripURLUserinfo((&signoz.Client{APIKey: a.apiKey}).Redact(s))
 }
 
 func (a *app) validateAPIKey() error {
@@ -179,8 +179,12 @@ func (a *app) client(ctx context.Context) (*signoz.Client, error) {
 	if base == "" {
 		return nil, authErr(errors.New("SIGNOZ_URL is not set (example: https://your-instance.signoz.cloud)"))
 	}
+	normalized, err := signoz.ValidateBaseURL(base)
+	if err != nil {
+		return nil, configErr(err)
+	}
 	return &signoz.Client{
-		BaseURL: base,
+		BaseURL: normalized,
 		APIKey:  a.apiKey,
 		HTTP:    &http.Client{Timeout: a.timeout},
 	}, nil

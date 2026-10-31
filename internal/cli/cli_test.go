@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -230,5 +231,108 @@ func TestAlertsListTableOutput(t *testing.T) {
 	code, out, _ := runCLI(t, srv, "alerts", "list", "--output", "table")
 	if code != 0 || !strings.Contains(out, "cpu") {
 		t.Fatalf("table code=%d out=%s", code, out)
+	}
+}
+
+func TestInvalidBaseURLs(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	defer srv.Close()
+	cases := []struct {
+		url  string
+		code int
+	}{
+		{"ftp://example.com", 2},
+		{"https://", 2},
+		{"https://user:pass@host.example", 2},
+	}
+	for _, tc := range cases {
+		getenv := func(k string) string {
+			switch k {
+			case "SIGNOZ_URL":
+				return tc.url
+			case "SIGNOZ_API_KEY":
+				return testAPIKey
+			}
+			return ""
+		}
+		var errOut bytes.Buffer
+		code := Execute([]string{"version"}, strings.NewReader(""), io.Discard, &errOut, getenv)
+		if code != tc.code {
+			t.Fatalf("url %q want exit %d got %d: %s", tc.url, tc.code, code, errOut.String())
+		}
+		errText := errOut.String()
+		if strings.Contains(errText, "user:pass") || strings.Contains(errText, "pass@") {
+			t.Fatalf("userinfo leaked in error for %q: %s", tc.url, errText)
+		}
+	}
+}
+
+func TestDryRunStripsURLUserinfo(t *testing.T) {
+	getenv := func(k string) string {
+		switch k {
+		case "SIGNOZ_URL":
+			return "https://user:secret@host.example"
+		case "SIGNOZ_API_KEY":
+			return testAPIKey
+		}
+		return ""
+	}
+	var out bytes.Buffer
+	code := Execute([]string{"health", "--dry-run"}, strings.NewReader(""), &out, io.Discard, getenv)
+	if code != 2 {
+		t.Fatalf("want config error for userinfo URL, got %d", code)
+	}
+}
+
+func TestDryRunNoUserinfoOnValidURL(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	defer srv.Close()
+	getenv := func(k string) string {
+		switch k {
+		case "SIGNOZ_URL":
+			return srv.URL
+		case "SIGNOZ_API_KEY":
+			return testAPIKey
+		}
+		return ""
+	}
+	var out bytes.Buffer
+	code := Execute([]string{"health", "--dry-run"}, strings.NewReader(""), &out, io.Discard, getenv)
+	if code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	if strings.Contains(out.String(), "@") {
+		t.Fatalf("unexpected userinfo in dry-run: %s", out.String())
+	}
+}
+
+func TestAPIPathValidation(t *testing.T) {
+	srv := httptest.NewServer(http.NotFoundHandler())
+	defer srv.Close()
+	for _, args := range [][]string{
+		{"api", "GET", "/apix/foo"},
+		{"api", "GET", "/api/../etc/passwd"},
+	} {
+		code, _, errOut := runCLI(t, srv, args...)
+		if code != 2 {
+			t.Fatalf("args %v want exit 2 got %d stderr=%s", args, code, errOut)
+		}
+	}
+}
+
+func TestSkillMarkdownIdentical(t *testing.T) {
+	a, err := os.ReadFile("SKILL.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile("../../skills/signoz/SKILL.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(a) != string(b) {
+		t.Fatalf("SKILL.md files differ; run scripts/sync-skill-md.sh")
+	}
+	if string(a) != skillMD {
+		t.Fatalf("embedded SKILL.md out of sync with internal/cli/SKILL.md")
 	}
 }
