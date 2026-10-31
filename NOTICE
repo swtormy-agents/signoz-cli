@@ -1,0 +1,9 @@
+signoz-cli
+
+This product includes software developed by third parties:
+
+- SigNoz REST API documentation and OpenAPI descriptions
+  https://github.com/SigNoz/signoz
+  MIT (project) / Apache-2.0 (portions) — see upstream repository
+
+This CLI is unofficial and not affiliated with SigNoz.
