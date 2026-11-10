@@ -14,7 +14,7 @@ Download a release archive from [GitHub Releases](https://github.com/swtormy-age
 
 ```bash
 curl -sSL -o signoz.tar.gz \
-  "https://github.com/swtormy-agents/signoz-cli/releases/download/v0.1.0/signoz_linux_arm64.tar.gz"
+  "https://github.com/swtormy-agents/signoz-cli/releases/latest/download/signoz_linux_arm64.tar.gz"
 tar -xzf signoz.tar.gz
 install -m 0755 signoz_linux_arm64/signoz /usr/local/bin/signoz
 ```
@@ -23,7 +23,7 @@ install -m 0755 signoz_linux_arm64/signoz /usr/local/bin/signoz
 
 ```bash
 curl -sSL -o signoz.tar.gz \
-  "https://github.com/swtormy-agents/signoz-cli/releases/download/v0.1.0/signoz_darwin_arm64.tar.gz"
+  "https://github.com/swtormy-agents/signoz-cli/releases/latest/download/signoz_darwin_arm64.tar.gz"
 tar -xzf signoz.tar.gz
 install -m 0755 signoz_darwin_arm64/signoz /usr/local/bin/signoz
 ```
