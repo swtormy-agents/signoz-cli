@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cross-compiles signoz for Linux and Windows (amd64, arm64) into ./dist and writes checksums.txt.
+# Cross-compiles signoz for Linux, macOS (darwin), and Windows (amd64, arm64) into ./dist and writes checksums.txt.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -50,7 +50,7 @@ while IFS=, read -r pkg_path _ lic; do
   done < <(find "${mod_dir}" -maxdepth 1 -type f \( -iname 'NOTICE' -o -iname 'NOTICE.txt' \) -print0)
 done < <(tail -n +1 "${license_stage}/report.csv")
 
-targets="linux/amd64 linux/arm64 windows/amd64 windows/arm64"
+targets="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64"
 for t in $targets; do
   os="${t%/*}"
   arch="${t#*/}"

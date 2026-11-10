@@ -8,7 +8,27 @@ MIT licensed. Third-party notices in [NOTICE](NOTICE); release archives also shi
 
 ## Install
 
-Download a release archive from [GitHub Releases](https://github.com/swtormy-agents/signoz-cli/releases) (Linux and Windows, amd64/arm64). Extract the binary and add it to your `PATH`.
+Download a release archive from [GitHub Releases](https://github.com/swtormy-agents/signoz-cli/releases) (Linux, macOS, and Windows; amd64 and arm64). Each archive ships the `signoz` binary, `LICENSE`, `NOTICE`, bundled docs/skills, and license notices. Pick `signoz_<os>_<arch>.tar.gz` on Linux and macOS, or `signoz_windows_<arch>.zip` on Windows.
+
+**Linux** (example: arm64):
+
+```bash
+curl -sSL -o signoz.tar.gz \
+  "https://github.com/swtormy-agents/signoz-cli/releases/latest/download/signoz_linux_arm64.tar.gz"
+tar -xzf signoz.tar.gz
+install -m 0755 signoz_linux_arm64/signoz /usr/local/bin/signoz
+```
+
+**macOS** (example: Apple Silicon / arm64):
+
+```bash
+curl -sSL -o signoz.tar.gz \
+  "https://github.com/swtormy-agents/signoz-cli/releases/latest/download/signoz_darwin_arm64.tar.gz"
+tar -xzf signoz.tar.gz
+install -m 0755 signoz_darwin_arm64/signoz /usr/local/bin/signoz
+```
+
+On Intel Macs use `signoz_darwin_amd64.tar.gz` instead.
 
 Or install from source with Go **1.26.10** (matches `go.mod`):
 
